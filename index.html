@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>玄机命理</title>
+<style>
+/* 玄机命理 - Web版样式 */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: linear-gradient(180deg, #0f0f23 0%, #1a1a3e 100%);
+  color: #e0e0e0;
+  min-height: 100vh;
+  padding: 0 16px 80px;
+}
+.page { display: none; }
+.page.active { display: block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Header */
+.header {
+  background: linear-gradient(135deg, #1a1a3e, #16213e);
+  padding: 20px 24px;
+  margin: 0 -16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid rgba(255,215,0,0.1);
+}
+.header .back-btn { color: #ffd700; cursor: pointer; font-size: 24px; }
+.header h1 { font-size: 20px; color: #ffd700; flex: 1; }
+
+/* Card */
+.card {
+  background: linear-gradient(135deg, #1a1a3e, #16213e);
+  border-radius: 16px;
+  padding: 24px;
+  margin: 16px 0;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,215,0,0.1);
+}
+.card-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #ffd700;
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+/* Buttons */
+.btn {
+  display: block;
+  padding: 16px;
+  border-radius: 40px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 18px;
+  cursor: pointer;
+  border: none;
+  margin: 12px 0;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,215,0,0.3); }
+.btn:active { transform: translateY(0); }
+.btn-primary { background: linear-gradient(135deg, #ffd700, #ff8c00); color: #1a1a2e; }
+.btn-secondary { background: rgba(255,255,255,0.1); color: #ffd700; border: 1px solid rgba(255,215,0,0.3); }
+
+/* Form elements */
+.label { color: #aaa; font-size: 14px; margin-bottom: 8px; display: block; }
+.input-group { margin: 16px 0; }
+.select-box {
+  background: rgba(255,255,255,0.05);
+  padding: 14px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.select-box:hover { border-color: rgba(255,215,0,0.3); }
+.gender-group { display: flex; gap: 12px; margin-top: 8px; }
+.gender-btn {
+  flex: 1;
+  padding: 14px;
+  border-radius: 12px;
+  text-align: center;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s;
+}
+.gender-btn.active { background: rgba(255,215,0,0.2); border-color: #ffd700; color: #ffd700; }
+.gender-btn:not(.active) { background: rgba(255,255,255,0.05); color: #aaa; }
+
+/* Pillar grid */
+.pillar-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.pillar-box {
+  background: rgba(255,215,0,0.08);
+  border-radius: 12px;
+  padding: 16px 8px;
+  text-align: center;
+  border: 1px solid rgba(255,215,0,0.2);
+}
+.pillar-box .gan { font-size: 32px; color: #ffd700; font-weight: bold; }
+.pillar-box .zhi { font-size: 24px; }
+.pillar-box .plabel { font-size: 13px; color: #999; margin-top: 4px; }
+.pillar-box .pnayin { font-size: 12px; color: #ffd700; }
+
+/* Info rows */
+.info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.info-row:last-child { border-bottom: none; }
+.info-row .label { color: #aaa; }
+.info-row .value { color: #e0e0e0; font-weight: bold; }
+
+/* Zi Wei grid */
+.palace-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 3px;
+  background: rgba(255,215,0,0.1);
+  border: 2px solid rgba(255,215,0,0.3);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.palace-cell {
+  background: rgba(0,0,0,0.3);
+  padding: 8px 4px;
+  min-height: 100px;
+  text-align: center;
+  font-size: 12px;
+}
+.palace-cell.ming { background: rgba(255,215,0,0.2); border: 1px solid #ffd700; }
+.palace-cell .pname { color: #ffd700; font-weight: bold; font-size: 13px; }
+.palace-cell .sname { color: #87ceeb; font-size: 12px; display: block; }
+.palace-cell .hua-tag { color: #ff6b6b; font-size: 10px; }
+
+/* Da Yun scroll */
+.da-yun-scroll { display: flex; gap: 10px; overflow-x: auto; padding: 12px 0; }
+.da-yun-item {
+  flex: 0 0 130px;
+  padding: 14px;
+  background: rgba(255,215,0,0.08);
+  border-radius: 12px;
+  text-align: center;
+}
+.da-yun-item .yun-gan { font-size: 24px; color: #ffd700; font-weight: bold; }
+.da-yun-item .yun-age { font-size: 13px; color: #aaa; margin-top: 4px; }
+
+/* Fortune section */
+.fortune-header {
+  text-align: center;
+  padding: 20px;
+  background: linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,140,0,0.05));
+  border-radius: 16px;
+  margin: 16px 0;
+}
+.fortune-header .year-name { font-size: 32px; color: #ffd700; font-weight: bold; }
+.fortune-header .year-detail { font-size: 16px; color: #e0e0e0; margin-top: 8px; }
+
+/* Tags / shichen */
+.tag-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag {
+  font-size: 12px;
+  color: #aaa;
+  background: rgba(255,255,255,0.05);
+  padding: 6px 12px;
+  border-radius: 8px;
+}
+
+/* Loading */
+.loading { text-align: center; padding: 60px 0; }
+.loading .spinner {
+  width: 40px; height: 40px;
+  border: 3px solid rgba(255,215,0,0.2);
+  border-top-color: #ffd700;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 16px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Modal for select */
+.modal-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6);
+  display: none; align-items: flex-end; justify-content: center;
+  z-index: 100;
+}
+.modal-overlay.active { display: flex; }
+.modal-content {
+  background: #1a1a3e;
+  border-radius: 20px 20px 0 0;
+  width: 100%;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding: 20px;
+  max-width: 500px;
+}
+.modal-content .modal-title { color: #ffd700; font-size: 18px; text-align: center; margin-bottom: 16px; }
+.modal-content .modal-item {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  cursor: pointer;
+  color: #e0e0e0;
+}
+.modal-content .modal-item:hover { background: rgba(255,215,0,0.1); }
+.modal-content .modal-item.selected { color: #ffd700; font-weight: bold; }
+.modal-content .modal-item:last-child { border-bottom: none; }
+
+/* Loading bar at top */
+.top-bar { height: 3px; background: rgba(255,215,0,0.1); margin: 0 -16px; }
+.top-bar .progress {
+  height: 100%;
+  background: linear-gradient(90deg, #ffd700, #ff8c00);
+  width: 0%;
+  transition: width 0.5s;
+}
+
+/* Sihua section */
+.sihua-list { margin-top: 12px; }
+.sihua-item { padding: 8px 0; font-size: 14px; }
+.sihua-item .htype { color: #ffd700; }
+.sihua-item .htext { color: #999; margin-left: 8px; font-size: 12px; }
+
+/* Advice box */
+.advice-box {
+  margin-top: 12px;
+  padding: 16px;
+  background: rgba(255,215,0,0.05);
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.8;
+  color: #ccc;
+}
+
+/* Home page hero */
+.hero { text-align: center; padding: 40px 0 20px; }
+.hero .logo {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ffd700, #ff8c00);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 20px;
+  font-size: 36px;
+  box-shadow: 0 0 40px rgba(255,215,0,0.3);
+}
+.hero h1 { font-size: 32px; color: #ffd700; margin-bottom: 8px; }
+.hero p { font-size: 14px; color: #aaa; }
+
+.features { text-align: left; }
+.feature-item { padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; }
+.feature-item:last-child { border-bottom: none; }
+.feature-item .dot { color: #ffd700; margin-right: 8px; }
+
+/* Footer */
+.footer { text-align: center; padding: 30px 0; font-size: 12px; color: #555; }
+
+/* Responsive */
+@media (max-width: 400px) {
+  .pillar-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+::-webkit-scrollbar-thumb { background: rgba(255,215,0,0.3); border-radius: 2px; }
+
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="back-btn" id="backBtn" style="display:none" onclick="goHome()">←</span>
+  <h1 id="pageTitle">玄机命理</h1>
+  <span style="font-size:12px;color:#666;margin-left:auto" id="statusBadge">⚪ 未连接</span>
+</div>
+<div class="top-bar"><div class="progress" id="progressBar"></div></div>
+
+<!-- HOME -->
+<div class="page active" id="page-home">
+  <div class="hero">
+    <div class="logo">☯</div>
+    <h1>玄机命理</h1>
+    <p>紫微斗数 · 四柱八字 · 流年运势</p>
+  </div>
+  <div class="card">
+    <button class="btn btn-primary" onclick="goPage('input')">开始排盘</button>
+    <p style="text-align:center;font-size:13px;color:#666;margin-top:12px">输入出生信息即可生成完整命盘分析</p>
+  </div>
+  <div class="card">
+    <div class="card-title">使用说明</div>
+    <div class="features">
+      <div class="feature-item"><span class="dot">✦</span>需要启动 Python 后端才能使用算命功能</div>
+      <div class="feature-item" style="font-size:12px;color:#666">
+        cd server &amp;&amp; python app.py
+      </div>
+      <div class="feature-item"><span class="dot">✦</span>后端运行在 http://localhost:5000</div>
+      <div class="feature-item"><span class="dot">✦</span>也可查看下方「在线演示」静态效果</div>
+    </div>
+  </div>
+  <div class="card" id="demoCard" style="display:none">
+    <div class="card-title">🎯 在线演示 (静态数据)</div>
+    <div id="demoContent"></div>
+  </div>
+  <div class="footer">玄机命理 v1.0 · 仅供娱乐参考</div>
+</div>
+
+<!-- INPUT -->
+<div class="page" id="page-input">
+  <div class="card">
+    <div class="card-title">输入出生信息</div>
+    <div class="input-group">
+      <label class="label">出生日期</label>
+      <div class="select-box" onclick="document.getElementById('datePicker').showPicker?.()||document.getElementById('datePicker').click()">
+        <span id="dateDisplay">1990年6月15日</span><span style="color:#666">▼</span>
+      </div>
+      <input type="date" id="datePicker" style="display:none" value="1990-06-15" onchange="onDateChange(this.value)">
+    </div>
+    <div class="input-group">
+      <label class="label">出生时间</label>
+      <div style="display:flex;gap:10px;margin-top:8px">
+        <div class="select-box" style="flex:1" onclick="openHourPicker()">
+          <span id="hourDisplay">12时</span><span style="color:#666">▼</span>
+        </div>
+        <div class="select-box" style="flex:1" onclick="openMinutePicker()">
+          <span id="minuteDisplay">0分</span><span style="color:#666">▼</span>
+        </div>
+      </div>
+    </div>
+    <div class="input-group">
+      <label class="label">性别</label>
+      <div class="gender-group">
+        <div class="gender-btn active" data-gender="男" onclick="setGender(this)">男</div>
+        <div class="gender-btn" data-gender="女" onclick="setGender(this)">女</div>
+      </div>
+    </div>
+  </div>
+  <button class="btn btn-primary" onclick="submitInput()">开始排盘</button>
+  <button class="btn btn-secondary" onclick="loadDemo()">📱 查看在线演示（免后端）</button>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal" onclick="if(event.target===this)this.classList.remove('active')">
+  <div class="modal-content">
+    <div class="modal-title" id="modalTitle">选择</div>
+    <div id="modalList"></div>
+  </div>
+</div>
+
+<script>
+// ============== 配置 ==============
+const API_BASE = localStorage.getItem("apiBase") || "http://localhost:5000/api";
+const ZHI = ["子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"];
+let birthInput = {year:1990,month:6,day:15,hour:12,minute:0,gender:"男"};
+let pickerCallback = null;
+
+// ============== 页面 ==============
+function goPage(name) {
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  const el = document.getElementById("page-"+name);
+  if(el) el.classList.add("active");
+  document.getElementById("backBtn").style.display = name!=="home"?"block":"none";
+  const titles={home:"玄机命理",input:"输入出生信息",bazi:"八字排盘",ziwei:"紫微斗数",fortune:"流年运势"};
+  document.getElementById("pageTitle").textContent = titles[name]||"玄机命理";
+  window.scrollTo(0,0);
+}
+function goHome(){goPage("home");}
+
+// ============== 选择器 ==============
+function showModal(title,items,selected,cb){
+  pickerCallback=cb;
+  document.getElementById("modalTitle").textContent=title;
+  document.getElementById("modalList").innerHTML=items.map((item,i)=>
+    '<div class="modal-item '+(i===selected?"selected":"")+'" onclick="document.getElementById('modal').classList.remove('active');pickerCallback&&pickerCallback('+i+')">'+item+'</div>'
+  ).join("");
+  document.getElementById("modal").classList.add("active");
+}
+function onDateChange(v){
+  const p=v.split("-");
+  birthInput.year=parseInt(p[0]);birthInput.month=parseInt(p[1]);birthInput.day=parseInt(p[2]);
+  document.getElementById("dateDisplay").textContent=p[0]+"年"+p[1]+"月"+p[2]+"日";
+}
+function openHourPicker(){
+  showModal("选择小时",Array.from({length:24},(_,i)=>i+"时"),birthInput.hour,(i)=>{birthInput.hour=i;document.getElementById("hourDisplay").textContent=i+"时";});
+}
+function openMinutePicker(){
+  showModal("选择分钟",Array.from({length:60},(_,i)=>i+"分"),birthInput.minute,(i)=>{birthInput.minute=i;document.getElementById("minuteDisplay").textContent=i+"分";});
+}
+function setGender(el){
+  document.querySelectorAll(".gender-btn").forEach(b=>b.classList.remove("active"));
+  el.classList.add("active");
+  birthInput.gender=el.dataset.gender;
+}
+
+// ============== API ==============
+async function apiCall(path,data){
+  const bar=document.getElementById("progressBar");
+  bar.style.width="30%";
+  try{
+    const resp=await fetch(API_BASE+path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)});
+    bar.style.width="80%";
+    const j=await resp.json();
+    if(j.code!==0) throw new Error(j.msg||"error");
+    bar.style.width="100%";setTimeout(()=>bar.style.width="0%",500);
+    document.getElementById("statusBadge").textContent="🟢 已连接";
+    return j.data;
+  }catch(e){
+    bar.style.width="0%";
+    document.getElementById("statusBadge").textContent="🔴 未连接";
+    throw e;
+  }
+}
+
+// ============== 演示数据（免后端） ==============
+const DEMO_DATA = {
+  bazi: {
+    year_pillar:{gan_zhi:"庚午",gan:"庚",zhi:"午",na_yin:"路旁土"},
+    month_pillar:{gan_zhi:"壬午",gan:"壬",zhi:"午",na_yin:"杨柳木"},
+    day_pillar:{gan_zhi:"戊戌",gan:"戊",zhi:"戌",na_yin:"平地木"},
+    hour_pillar:{gan_zhi:"戊午",gan:"戊",zhi:"午",na_yin:"天上火"},
+    ri_zhu:{gan:"戊",zhi:"戌",wu_xing:"土",yinyang:"阳"},
+    sheng_xiao:"马",shi_chen:"午时",
+    ri_gan_text:"戊土厚重，诚实稳重，有责任心，做事踏实，但有时过于保守。",
+    da_yun:[
+      {gan_zhi:"癸未",age_start:0,age_end:9},
+      {gan_zhi:"甲申",age_start:10,age_end:19},
+      {gan_zhi:"乙酉",age_start:20,age_end:29},
+      {gan_zhi:"丙戌",age_start:30,age_end:39},
+    ]
+  },
+  ziwei: {
+    ming_pos:6,wuxing_ju_name:"火六局",shen_pos:8,
+    sihua:{化禄:"太阳",化权:"武曲",化科:"天同",化忌:"太阴"},
+    palaces:[
+      {position:6,name:"命宫",main_stars:[{name:"紫微"},{name:"贪狼"},{name:"武曲",hua:"化权"}],aux_stars:[{name:"左辅"},{name:"文昌"}],is_ming:true},
+      {position:7,name:"兄弟",main_stars:[{name:"巨门"}],aux_stars:[],is_ming:false},
+      {position:8,name:"夫妻",main_stars:[{name:"廉贞"},{name:"天相"}],aux_stars:[{name:"右弼"}],is_ming:false},
+      {position:9,name:"子女",main_stars:[{name:"天同",hua:"化科"},{name:"天梁"}],aux_stars:[{name:"天钺"}],is_ming:false},
+      {position:10,name:"财帛",main_stars:[{name:"七杀"}],aux_stars:[{name:"擎羊"}],is_ming:false},
+      {position:11,name:"疾厄",main_stars:[{name:"天机"}],aux_stars:[{name:"火星"}],is_ming:false},
+      {position:0,name:"迁移",main_stars:[{name:"破军"}],aux_stars:[{name:"天马"}],is_ming:false},
+      {position:1,name:"交友",main_stars:[],aux_stars:[{name:"铃星"}],is_ming:false},
+      {position:2,name:"官禄",main_stars:[{name:"太阳",hua:"化禄"}],aux_stars:[{name:"天魁"}],is_ming:false},
+      {position:3,name:"田宅",main_stars:[{name:"天府"}],aux_stars:[{name:"陀罗"}],is_ming:false},
+      {position:4,name:"福德",main_stars:[{name:"太阴",hua:"化忌"}],aux_stars:[{name:"文曲"}],is_ming:false},
+      {position:5,name:"父母",main_stars:[{name:"天机"}],aux_stars:[],is_ming:false},
+    ]
+  },
+  fortune:{
+    liunian:{gan_zhi:"丙午",sheng_xiao:"马",na_yin:"天河水",shi_shen:"偏印"},
+    liuyue:{gan_zhi:"甲午",shi_shen:"正官"},
+    liuri:{gan_zhi:"庚子",na_yin:"壁上土",shi_shen:"食神"},
+    advice:"今年运势整体平稳向上，贵人运不错，事业上适合稳步推进。注意不要过于冒进，投资方面以稳健为主。感情方面有机会遇到合适的人。"
+  }
+};
+
+function loadDemo(){
+  goPage("bazi");
+  renderBazi(DEMO_DATA.bazi);
+  document.querySelector("#baziContent button").onclick=()=>{goPage("ziwei");renderZiwei(DEMO_DATA.ziwei);};
+  document.querySelector("#ziweiContent button").onclick=()=>{goPage("fortune");renderFortune(DEMO_DATA.fortune);};
+  document.getElementById("statusBadge").textContent="🟡 演示模式";
+}
+
+// ============== 提交 ==============
+async function submitInput(){
+  goPage("bazi");
+  document.getElementById("baziLoading").style.display="block";
+  document.getElementById("baziContent").style.display="none";
+  try{
+    const data=await apiCall("/bazi",birthInput);
+    renderBazi(data);
+  }catch(e){
+    document.getElementById("baziLoading").innerHTML='<p style="color:#ff6b6b">⚠️ 连接后端失败<br>点击下方按钮查看离线演示</p><button class="btn btn-secondary" onclick="loadDemo()">📱 查看在线演示</button>';
+  }
+}
+
+// ============== 渲染函数 ==============
+function renderBazi(data){
+  document.getElementById("baziLoading").style.display="none";
+  const el=document.getElementById("baziContent");
+  if(!el) return;
+  el.style.display="block";
+  el.innerHTML=`
+    <div class="card">
+      <div class="card-title">四柱八字</div>
+      <div class="pillar-grid">
+        ${["年柱","月柱","日柱","时柱"].map((l,i)=>{
+          const p=[data.year_pillar,data.month_pillar,data.day_pillar,data.hour_pillar][i];
+          return `<div class="pillar-box">
+            <div class="gan">${p.gan}</div>
+            <div class="zhi">${p.zhi}</div>
+            <div class="plabel">${l}</div>
+            <div class="pnayin">${p.na_yin||""}</div>
+          </div>`;
+        }).join("")}
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">日主信息</div>
+      <div class="info-row"><span class="label">日主</span><span class="value">${data.ri_zhu.gan}${data.ri_zhu.zhi}</span></div>
+      <div class="info-row"><span class="label">五行</span><span class="value">${data.ri_zhu.wu_xing}</span></div>
+      <div class="info-row"><span class="label">阴阳</span><span class="value">${data.ri_zhu.yinyang||""}</span></div>
+      <div class="info-row"><span class="label">生肖</span><span class="value">${data.sheng_xiao}</span></div>
+      <div class="info-row"><span class="label">时辰</span><span class="value">${data.shi_chen}</span></div>
+      <div class="advice-box">${data.ri_gan_text||"暂无解读"}</div>
+    </div>
+    <div class="card">
+      <div class="card-title">大运</div>
+      <div class="da-yun-scroll">
+        ${(data.da_yun||[]).map(d=>`<div class="da-yun-item"><div class="yun-gan">${d.gan_zhi}</div><div class="yun-age">${d.age_start}-${d.age_end}岁</div></div>`).join("")}
+      </div>
+    </div>
+    <button class="btn btn-primary" id="toZiweiBtn">查看紫微斗数 →</button>
+  `;
+  document.getElementById("toZiweiBtn").onclick=async ()=>{
+    goPage("ziwei");
+    document.getElementById("ziweiLoading").style.display="block";
+    document.getElementById("ziweiContent").style.display="none";
+    try{
+      const d=await apiCall("/ziwei",birthInput);
+      renderZiwei(d);
+    }catch(e){
+      document.getElementById("ziweiLoading").innerHTML='<p style="color:#ff6b6b">连接后端失败</p><button class="btn btn-secondary" onclick="loadDemo()">查看演示</button>';
+    }
+  };
+}
+
+function renderZiwei(data){
+  document.getElementById("ziweiLoading").style.display="none";
+  const el=document.getElementById("ziweiContent");
+  if(!el) return;
+  el.style.display="block";
+  const displayOrder=[5,6,7,8,4,9,3,10,2,1,0,11];
+  const palByPos={};
+  (data.palaces||[]).forEach(p=>{palByPos[p.position]=p;});
+  el.innerHTML=`
+    <div class="card">
+      <div class="card-title">命盘信息</div>
+      <div class="info-row"><span class="label">五行局</span><span class="value">${data.wuxing_ju_name}</span></div>
+      <div class="info-row"><span class="label">命宫</span><span class="value">${ZHI[data.ming_pos]}</span></div>
+      <div class="info-row"><span class="label">身宫</span><span class="value">${ZHI[data.shen_pos]}</span></div>
+    </div>
+    <div class="card">
+      <div class="card-title">紫微命盘</div>
+      <div class="palace-grid">
+        ${displayOrder.map(pos=>{
+          const p=palByPos[pos]||{name:"?",main_stars:[],aux_stars:[],is_ming:false};
+          const ms=p.main_stars.map(s=>'<span class="sname">'+s.name+(s.hua?'<span class="hua-tag">['+s.hua+']</span>":"")+'</span>').join("");
+          const as=p.aux_stars.map(s=>'<span style="font-size:10px;color:#aaa">'+s.name+'</span>').join("");
+          return '<div class="palace-cell'+(p.is_ming?" ming":"")+'"><div class="pname">'+p.name+'</div>'+ms+as+'</div>';
+        }).join("")}
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">四化</div>
+      ${Object.entries(data.sihua||{}).filter(([k,v])=>v).map(([t,s])=>'<div class="sihua-item"><span class="htype">'+t+'</span>：'+s+'</div>').join("")||'<div style="color:#666">无</div>'}
+    </div>
+    <button class="btn btn-primary" id="toFortuneBtn">查看流年运势 →</button>
+  `;
+  document.getElementById("toFortuneBtn").onclick=async ()=>{
+    goPage("fortune");
+    document.getElementById("fortuneLoading").style.display="block";
+    document.getElementById("fortuneContent").style.display="none";
+    try{
+      const now=new Date();
+      const d=await apiCall("/fortune",{...birthInput,target_year:now.getFullYear(),target_month:now.getMonth()+1});
+      renderFortune(d);
+    }catch(e){
+      document.getElementById("fortuneLoading").innerHTML='<p style="color:#ff6b6b">连接后端失败</p><button class="btn btn-secondary" onclick="loadDemo()">查看演示</button>';
+    }
+  };
+}
+
+function renderFortune(data){
+  document.getElementById("fortuneLoading").style.display="none";
+  const el=document.getElementById("fortuneContent");
+  if(!el) return;
+  el.style.display="block";
+  el.innerHTML=`
+    <div class="fortune-header">
+      <div class="year-name">${data.liunian.gan_zhi||""}年</div>
+      <div class="year-detail">生肖：${data.liunian.sheng_xiao||""}　${data.liunian.na_yin||""}</div>
+    </div>
+    <div class="card">
+      <div class="card-title">📅 流年运势</div>
+      <div class="info-row"><span class="label">干支</span><span class="value">${data.liunian.gan_zhi}</span></div>
+      <div class="info-row"><span class="label">十神</span><span class="value">${data.liunian.shi_shen}</span></div>
+      <div class="advice-box">${data.advice||"暂无建议"}</div>
+    </div>
+    <div class="card">
+      <div class="card-title">📆 本月 ${data.liuyue.gan_zhi}</div>
+      <div class="info-row"><span class="label">干支</span><span class="value">${data.liuyue.gan_zhi}</span></div>
+      <div class="info-row"><span class="label">十神</span><span class="value">${data.liuyue.shi_shen}</span></div>
+    </div>
+    <div class="card">
+      <div class="card-title">🗓️ 今日 ${data.liuri.gan_zhi}</div>
+      <div class="info-row"><span class="label">干支</span><span class="value">${data.liuri.gan_zhi}</span></div>
+      <div class="info-row"><span class="label">纳音</span><span class="value">${data.liuri.na_yin}</span></div>
+      <div class="info-row"><span class="label">十神</span><span class="value">${data.liuri.shi_shen}</span></div>
+    </div>
+  `;
+}
+
+// ============== 初始化 ==============
+document.addEventListener("DOMContentLoaded",()=>{
+  document.getElementById("datePicker").value="1990-06-15";
+  // 检查后端是否在线
+  fetch(API_BASE+"/health").then(r=>r.json()).then(d=>{
+    document.getElementById("statusBadge").textContent="🟢 已连接";
+    document.getElementById("statusBadge").style.color="#4caf50";
+  }).catch(()=>{
+    document.getElementById("statusBadge").textContent="🟡 离线模式";
+    document.getElementById("demoCard").style.display="block";
+    document.getElementById("demoCard").innerHTML='<div class="card-title">🎯 离线演示</div><p style="font-size:14px;color:#aaa">后端未启动，点击查看预设演示数据：</p><button class="btn btn-secondary" onclick="loadDemo()">查看演示命盘</button>';
+  });
+});
+</script>
+</body>
+</html>
